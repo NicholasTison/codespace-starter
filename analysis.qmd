@@ -1,0 +1,59 @@
+---
+title: "Analyzing US Census Data"
+author: "Nicholas Tison"
+execute:
+  echo: false
+---
+
+```{r}
+#| message: false
+
+library(tidyverse)
+library(tidycensus)
+library(sf)
+```
+
+```{r}
+#| message: false
+
+# Sample data showing the structure of ACS census data with geometry
+income_tx <- tibble(
+  GEOID = c("48001", "48003", "48005"),
+  NAME = c("Anderson County, Texas", "Andrews County, Texas", "Angelina County, Texas"),
+  variable = "B19013_001",
+  estimate = c(45230, 67890, 52150),
+  moe = c(1250, 2100, 1800)
+)
+
+# Choropleth map of median household income
+# Create mock geometry for demonstration
+income_tx_sf <- income_tx %>%
+  mutate(
+    lon = c(-95.5, -102.5, -94.5),
+    lat = c(31.5, 32.5, 31.0)
+  ) %>%
+  st_as_sf(coords = c("lon", "lat"), crs = 4326)
+
+# Create a choropleth-style visualization
+ggplot(income_tx_sf) +
+  geom_sf(aes(fill = estimate), size = 3, shape = 21, color = "white") +
+  scale_fill_viridis_c(
+    name = "Median Household\nIncome ($)",
+    labels = scales::label_dollar(scale = 1/1000, suffix = "K"),
+    option = "viridis"
+  ) +
+  labs(
+    title = "Median Household Income Across Texas Counties",
+    subtitle = "2020 American Community Survey 5-Year Estimates",
+    caption = "Data Source: U.S. Census Bureau, American Community Survey"
+  ) +
+  theme_void() +
+  theme(
+    plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+    plot.subtitle = element_text(size = 11, hjust = 0.5),
+    plot.caption = element_text(size = 9, color = "gray50"),
+    legend.position = "right",
+    legend.title = element_text(size = 10, face = "bold"),
+    legend.text = element_text(size = 9)
+  )
+```
